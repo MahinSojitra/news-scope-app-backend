@@ -5,22 +5,35 @@ require("dotenv").config();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:4200",
-  "https://news-scope-app.vercel.app",
-];
+// ✅ Allow only this origin
+const allowedOrigin = "https://news-scope-app.vercel.app";
 
+// ✅ Custom CORS middleware
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || origin === allowedOrigin) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(new Error("CORS: Origin not allowed"));
       }
     },
   })
 );
+
+// ✅ Middleware to block disallowed origins (even for non-CORS requests)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || origin === allowedOrigin) {
+    return next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message:
+        "Access denied: Only requests from the allowed origin are permitted.",
+    });
+  }
+});
 
 const NEWS_API_BASE = "https://newsapi.org/v2";
 
@@ -33,9 +46,10 @@ app.get("/api/news/everything", async (req, res) => {
     });
     res.json(response.data);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching articles", error: err.message });
+    res.status(500).json({
+      message: "Error fetching articles",
+      error: err.message,
+    });
   }
 });
 
@@ -47,11 +61,12 @@ app.get("/api/news/top-headlines", async (req, res) => {
     });
     res.json(response.data);
   } catch (err) {
-    res
-      .status(500)
-      .json({ message: "Error fetching headlines", error: err.message });
+    res.status(500).json({
+      message: "Error fetching headlines",
+      error: err.message,
+    });
   }
 });
 
-// ✅ Export handler for Vercel
+// ✅ Export for Vercel
 module.exports = app;
