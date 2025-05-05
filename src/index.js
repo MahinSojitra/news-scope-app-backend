@@ -6,10 +6,27 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// ✅ CORS configuration for production + localhost
+const allowedOrigins = [
+  "http://localhost:4200", // Angular local dev
+  "https://news-scope-app.vercel.app", // Deployed frontend
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  })
+);
 
 const NEWS_API_BASE = "https://newsapi.org/v2";
 
+// 🔍 Search Articles Endpoint
 app.get("/api/news/search", async (req, res) => {
   try {
     const { q } = req.query;
@@ -30,6 +47,7 @@ app.get("/api/news/search", async (req, res) => {
   }
 });
 
+// 📰 Top Headlines Endpoint
 app.get("/api/news/top-headlines", async (req, res) => {
   try {
     const response = await axios.get(`${NEWS_API_BASE}/top-headlines`, {
