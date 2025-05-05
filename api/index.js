@@ -8,37 +8,35 @@ const app = express();
 // ✅ Allowed frontend origin
 const allowedOrigin = "https://news-scope-app.vercel.app";
 
-// ✅ Strict CORS middleware — allows only the official frontend
+// ✅ CORS setup — only allow the official frontend
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || origin === allowedOrigin) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS: Origin not allowed"));
-      }
-    },
+    origin: allowedOrigin,
   })
 );
 
-// ✅ Manual origin + referer check to protect non-browser clients (like Postman/cURL)
+// ✅ Middleware to block requests not from allowed origin
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   const referer = req.headers.referer;
 
-  const isAllowed =
-    (!origin || origin === allowedOrigin) &&
-    (!referer || referer.startsWith(allowedOrigin));
-
-  if (isAllowed) {
-    next();
-  } else {
-    res.status(403).json({
+  // Reject if the origin is not allowed
+  if (!origin || origin !== allowedOrigin) {
+    return res.status(403).json({
       success: false,
-      message:
-        "Access denied: Only requests from the official frontend are permitted.",
+      message: "Access denied: Invalid or missing origin header.",
     });
   }
+
+  // Optional: Block if referer doesn't start with allowed origin
+  if (referer && !referer.startsWith(allowedOrigin)) {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied: Invalid referer header.",
+    });
+  }
+
+  next();
 });
 
 // ✅ NewsAPI Base URL
