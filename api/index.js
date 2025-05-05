@@ -4,12 +4,10 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// ✅ CORS configuration for production + localhost
 const allowedOrigins = [
-  "http://localhost:4200", // Angular local dev
-  "https://news-scope-app.vercel.app", // Deployed frontend
+  "http://localhost:4200",
+  "https://news-scope-app.vercel.app",
 ];
 
 app.use(
@@ -26,18 +24,12 @@ app.use(
 
 const NEWS_API_BASE = "https://newsapi.org/v2";
 
-// 🔍 Search Articles Endpoint
-app.get("/api/news/search", async (req, res) => {
+app.get("/api/news/everything", async (req, res) => {
   try {
     const { q } = req.query;
     const response = await axios.get(`${NEWS_API_BASE}/everything`, {
-      params: {
-        q,
-        language: "en",
-      },
-      headers: {
-        "X-Api-Key": process.env.NEWS_API_KEY,
-      },
+      params: { q, language: "en" },
+      headers: { "X-Api-Key": process.env.NEWS_API_KEY },
     });
     res.json(response.data);
   } catch (err) {
@@ -47,17 +39,11 @@ app.get("/api/news/search", async (req, res) => {
   }
 });
 
-// 📰 Top Headlines Endpoint
 app.get("/api/news/top-headlines", async (req, res) => {
   try {
     const response = await axios.get(`${NEWS_API_BASE}/top-headlines`, {
-      params: {
-        country: "us",
-        language: "en",
-      },
-      headers: {
-        "X-Api-Key": process.env.NEWS_API_KEY,
-      },
+      params: { country: "us", language: "en" },
+      headers: { "X-Api-Key": process.env.NEWS_API_KEY },
     });
     res.json(response.data);
   } catch (err) {
@@ -67,4 +53,5 @@ app.get("/api/news/top-headlines", async (req, res) => {
   }
 });
 
+// ✅ Export handler for Vercel
 module.exports = app;
