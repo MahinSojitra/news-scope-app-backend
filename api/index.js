@@ -78,5 +78,24 @@ app.get("/api/news/top-headlines", async (req, res) => {
   }
 });
 
+// ✅ /api/news/top-headlines/sources - Fetch sources by category, language, and country
+app.get("/api/news/top-headlines/sources", async (req, res) => {
+  try {
+    const { category, language, country } = req.query;
+
+    const response = await axios.get(`${NEWS_API_BASE}/top-headlines/sources`, {
+      params: { category, language, country },
+      headers: { "X-Api-Key": process.env.NEWS_API_KEY },
+    });
+
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json({
+      message: "Error fetching news sources",
+      error: err.message,
+    });
+  }
+});
+
 // ✅ Export for Vercel deployment
 module.exports = app;
